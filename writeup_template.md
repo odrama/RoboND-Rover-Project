@@ -45,9 +45,9 @@ Here is an example of how to include an image in your writeup.
 ![alt text][image4]
 
 #### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result. 
-And another! 
+Below is the link to the test_output video from my populated `process_image()` function. All the previously defined functions were implemnted in a sequence to form a pipeline to produce the below result 
 
-![alt text][video1]
+![test_ouput][video1]
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
