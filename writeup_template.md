@@ -40,7 +40,9 @@ You're reading it!
 
 ### Notebook Analysis
 #### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
-Here is an example of how to include an image in your writeup.
+Each of the below images are thresholded for a different type of detecton: navigable terrain, obstacles, and samples.
+I experimented with stacking them on top of each other to get a good feel of what i was doing, and in the last image
+i use convert the coordinates to the robot's perspective.
 
 ![alt text][image4]
 
@@ -52,8 +54,16 @@ Below is the link to the test_output video from my populated `process_image()` f
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
 
+First we define source and destination points from the grid image to transform 1m x 1m area to top view and scale it.
+Then we threshold the images for each component (navigable terrain, obstacles, and samples), then warp them, convert their coordinates to robot coordinates and then to world coordinates in order to be able to map what the front camera sees.
+Those pixels are then plotted with different colors to indicate which detection is which. All the functions supplied were used, but before that i wrote them as i was following the lectures in order to fully grasp them and modify them as i want.
 
-#### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.  
+#### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.
+
+I improved the angle at which the robot navigates by adding a function `steering()` in the `decision.py` file. It tries to center the robot in the navigable terrain by trying to get the mean angle of navigable terrain to 0. That improved its performance. The rover fails though when it hits the obstacles in the middle of the map. Maybe a different detection for those specific kind of obstacles would be a possible solution.
+
+
+Simulator Settings: Fastest @ 1024 x 768
 
 **Note: running the simulator with different choices of resolution and graphics quality may produce different results, particularly on different machines!  Make a note of your simulator settings (resolution and graphics quality set on launch) and frames per second (FPS output to terminal by `drive_rover.py`) in your writeup when you submit the project so your reviewer can reproduce your results.**
 
