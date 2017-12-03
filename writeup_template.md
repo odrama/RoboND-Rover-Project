@@ -69,6 +69,8 @@ Simulator Settings: Fastest @ 1024 x 768
 
 
 **Describe in your writeup (and identify where in your code) how you modified or added functions to add obstacle and rock sample identification.**
+
+For rock sample identification, i implemented a function similar to the one found in the opencv documentation referenced in the Udacity lectures. It basically masks the image in order to leave out the yellow colored pixels based on the HSV colorspace, then the image is converted to a binary representation to extract the pixels of the sample. Now that we have the x and y pixels of the sample, we can move on to convert them to rover coordinates and then world coordinates in order to map them. The function (implemented in both the test notebook and the pereception.py file) is as follows:
 ```python
 def detect_yellow(img):
     
@@ -86,6 +88,23 @@ def detect_yellow(img):
     binary_img[yellow_indices] = 1
 
     return binary_img
-    ```
+```
+
+As for Obstacle identification, i used the same provided function `color_thresh()` but instead of just searching for pixels that are only above the threshold, i modified it to search for the pixels that are bigger than or equal the threshold, so as to provide it with a (0, 0, 0) threshold tuple to include everything in the image, then i used opencv's `cv2.subtract()` function to subtract the navigable terrain pixels from the image. It was hinted that it would work fine if i chose the navigable terrain pixels, and then designated the obstacles to be everything else.
+```python
+def color_thresh(img, rgb_thresh=(160, 160, 160)):
+    # Create an array of zeros same xy size as img, but single channel
+    color_select = np.zeros_like(img[:,:,0])
+    # Require that each pixel be above all three threshold values in RGB
+    # above_thresh will now contain a boolean array with "True"
+    # where threshold was met
+    above_thresh = (img[:,:,0] >= rgb_thresh[0]) \
+                & (img[:,:,1] >= rgb_thresh[1]) \
+                & (img[:,:,2] >= rgb_thresh[2])
+    # Index the array of zeros with the boolean array and set to 1
+    color_select[above_thresh] = 1
+    # Return the binary image
+    return color_select
+```    
 
 
