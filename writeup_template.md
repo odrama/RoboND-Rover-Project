@@ -90,7 +90,8 @@ def detect_yellow(img):
     return binary_img
 ```
 
-As for Obstacle identification, i used the same provided function `color_thresh()` but instead of just searching for pixels that are only above the threshold, i modified it to search for the pixels that are bigger than or equal the threshold, so as to provide it with a (0, 0, 0) threshold tuple to include everything in the image, then i used opencv's `cv2.subtract()` function to subtract the navigable terrain pixels from the image. It was hinted that it would work fine if i chose the navigable terrain pixels, and then designated the obstacles to be everything else.
+As for Obstacle identification, i used the same provided function `color_thresh()` but instead of just searching for pixels that are only above the threshold, i modified it to search for the pixels that are bigger than or equal the threshold, so as to provide it with a (0, 0, 0) threshold tuple to include everything in the image, then i used opencv's `cv2.subtract()` function to subtract the navigable terrain pixels from the image. It was hinted that it would work fine if i chose the navigable terrain pixels, and then designated the obstacles to be everything else. Also used in both the test notebook and the pereception.py file.
+
 ```python
 def color_thresh(img, rgb_thresh=(160, 160, 160)):
     # Create an array of zeros same xy size as img, but single channel
@@ -108,3 +109,69 @@ def color_thresh(img, rgb_thresh=(160, 160, 160)):
 ```    
 
 
+**Describe in your writeup how you modified the process_image() to demonstrate your analysis and how you created a worldmap. Include your video output with your submission.**
+
+First, rover front cam input image was thresholded for the sample and navigable terrain pixels. The image is also thresholded with (0, 0, 0) as threshold values in order to convert all of it binary, then the navigable pixels are subtracted to leave us with the obstacles (assuming everything else is an obstacle).
+```python
+    color_select_rock = detect_yellow(img)
+    color_select = color_thresh(img, rgb_thresh)
+    # Here i subtract the navigable terrain from the whole image by using cv2.subtract to also account for
+    # negative values (if there are any).
+    color_select_obstacles = cv2.subtract(color_thresh(img, (0, 0, 0)), color_select)
+```    
+
+Each of the thresholded images is warped using the provided function `perspect_transform()` using predefine source and destination points, previously calibrated during testing on the grid image.
+```python
+    warped_color_select_obstacles = perspect_transform(color_select_obstacles, src_pts, dst_pts)
+    warped_color_select_rock = perspect_transform(color_select_rock, src_pts, dst_pts)
+    warped_color_select = perspect_transform(color_select, src_pts, dst_pts)
+```    
+
+Next, pixels for each detection are transformed to rover coordinates and then world coordinates using the functions provided.
+
+```python
+    x_rover, y_rover = rover_coords(warped_color_select)
+    obstacles_rover_x, obstacles_rover_y = rover_coords(warped_color_select_obstacles)
+    rock_rover_x, rock_rover_y = rover_coords(color_select_rock)
+    
+    # 6) Convert rover-centric pixel values to world coordinates
+    
+    x_world, y_world = pix_to_world(x_rover, y_rover, Rover.pos[0], Rover.pos[1], 
+                                   Rover.yaw, Rover.worldmap.shape[0], scale)
+    
+    rock_x_world, rock_y_world = pix_to_world(rock_rover_x, rock_rover_y, Rover.pos[0], Rover.pos[1], 
+                                                   Rover.yaw, Rover.worldmap.shape[0], scale)
+    
+    obstacles_world_x, obstacles_world_y = pix_to_world(obstacles_rover_x, obstacles_rover_y, 
+                                                       Rover.pos[0], Rover.pos[1], 
+                                                    Rover.yaw, Rover.worldmap.shape[0], scale)
+```
+
+Here we ignore appending the pixels to the world map if the robot's roll or pitch are not close enough to zero.
+
+```python
+    # Thresholding to remove false terrain identification
+    if ((Rover.pitch > 359.5) or (Rover.pitch < 0.5)) & ((Rover.roll > 359.5) or (Rover.roll < 0.5)):
+            # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
+        Rover.worldmap[obstacles_world_y, obstacles_world_x, 0] += 1
+            #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
+        Rover.worldmap[rock_y_world, rock_x_world, 1] +=1
+            #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
+Rover.worldmap[y_world, x_world, 2] += 1
+```
+
+Finally we convert the extracted information to navigable angles and distances to be used in the decision step
+```python
+    # 8) Convert rover-centric pixel positions to polar coordinates
+    r, theta = to_polar_coords(x_rover, y_rover)
+    # Update Rover pixel distances and angles
+        # Rover.nav_dists = rover_centric_pixel_distances
+        # Rover.nav_angles = rover_centric_angles
+    
+    Rover.nav_dists = r
+Rover.nav_angles = theta
+```
+
+A video for the output of the pipeline: 
+
+![test_ouput][video1]
