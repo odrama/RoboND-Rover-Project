@@ -68,8 +68,24 @@ Simulator Settings: Fastest @ 1024 x 768
 **Note: running the simulator with different choices of resolution and graphics quality may produce different results, particularly on different machines!  Make a note of your simulator settings (resolution and graphics quality set on launch) and frames per second (FPS output to terminal by `drive_rover.py`) in your writeup when you submit the project so your reviewer can reproduce your results.**
 
 
+**Describe in your writeup (and identify where in your code) how you modified or added functions to add obstacle and rock sample identification.**
+```python
+def detect_yellow(img):
+    
+    copy = np.copy(img)
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    lower_yellow = np.array([20,100,100])
+    upper_yellow = np.array([30,255,255])
+    yellow_mask = cv2.inRange(hsv_img, lower_yellow, upper_yellow)
+    
+    masked_rgb_img = cv2.bitwise_and(copy, copy, mask = yellow_mask)
+    gray = cv2.cvtColor(masked_rgb_img, cv2.COLOR_RGB2GRAY)
+    yellow_indices = gray[:, :] > 100
+    
+    binary_img = np.zeros_like(copy[:, :, 0])
+    binary_img[yellow_indices] = 1
 
-
-![alt text][image3]
+    return binary_img
+    ```
 
 
